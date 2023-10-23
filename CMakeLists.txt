@@ -55,6 +55,7 @@ add_message_files(
   lrc2xav.msg
   lrc2ocr.msg
   ocr2lrc.msg
+  AckermannDrive.msg
 )
 
 generate_messages(
@@ -106,6 +107,8 @@ add_executable(${PROJECT_NAME}
   nodes/control_node.cpp
 )
 
+add_executable(speedtest src/speedtest.cpp)
+
 add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -120,6 +123,9 @@ target_link_libraries(${PROJECT_NAME}_lib
   ${Boost_LIBRARIES}
   ${cppzmq_LIBRARIES}
   ${ZeroMQ_LIBRARIES}
+)
+target_link_libraries(speedtest
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -21,6 +21,9 @@ ScaleTruckController::~ScaleTruckController() {
   msg.steer_angle = 0;
   msg.cur_dist = distance_;
   msg.tar_vel = ResultVel_;	//Xavier to LRC and LRC to OpenCR
+  //msg.tar_vel = TestVel_;
+  //msg.tar_vel = 1.0;
+  printf("\nTestVel_         : %2.3f degree", TestVel_);
   msg.tar_dist = TargetDist_;
   msg.beta = Beta_;
   msg.gamma = Gamma_;
@@ -43,9 +46,12 @@ bool ScaleTruckController::readParameters() {
   /* Velocity Option */
   /*******************/
   nodeHandle_.param("params/target_vel", TargetVel_, 0.5f); // m/s
+  //nodeHandle_.param("params/target_vel", TargetVel_, 10.0f);
   nodeHandle_.param("params/safety_vel", SafetyVel_, 0.3f); // m/s
   nodeHandle_.param("params/fv_max_vel", FVmaxVel_, 0.8f); // m/s
   nodeHandle_.param("params/ref_vel", RefVel_, 0.0f); // m/s
+  nodeHandle_.param("params/test_vel", TestVel_, 0.9f); // m/s added
+  //nodeHandle_.param("params/ref_vel", RefVel_, 0.7f); // m/s
   
   /*******************/
   /* Distance Option */
@@ -77,7 +83,8 @@ void ScaleTruckController::init() {
   /******************************/
   /* Ros Topic Subscribe Option */
   /******************************/
-  nodeHandle_.param("subscribers/camera_reading/topic", imageTopicName, std::string("/usb_cam/image_raw"));
+  nodeHandle_.param("subscribers/camera_reading/topic", imageTopicName, std::string("/carla/ego_vehicle/rgb_front/image"));
+  //nodeHandle_.param("subscribers/camera_reading/topic", imageTopicName, std::string("/usb_cam/image_raw"));
   nodeHandle_.param("subscribers/camera_reading/queue_size", imageQueueSize, 1);
   nodeHandle_.param("subscribers/obstacle_reading/topic", objectTopicName, std::string("/raw_obstacles"));
   nodeHandle_.param("subscribers/obstacle_reading/queue_size", objectQueueSize, 100);
@@ -192,24 +199,30 @@ void* ScaleTruckController::objectdetectInThread() {
     laneDetector_.distance_ = 0;
   }
   
-  if(ZMQ_SOCKET_.zipcode_.compare(std::string("00000"))){	
+  //if(ZMQ_SOCKET_.zipcode_.compare(std::string("00000"))){	
+  if(1){
       /***************/
       /* LV velocity */
       /***************/
 	  if(distance_ <= LVstopDist_) {
 		// Emergency Brake
+	    printf("\n000");
 	    ResultVel_ = 0.0f;
+	    //ResultVel_ = 1.0f;
 	  }
 	  else if (distance_ <= SafetyDist_){
 	    float TmpVel_ = (ResultVel_-SafetyVel_)*((distance_-LVstopDist_)/(SafetyDist_-LVstopDist_))+SafetyVel_;
 		if (TargetVel_ < TmpVel_){
+			printf("\n111");
 			ResultVel_ = TargetVel_;
 		}
 		else{
+			printf("\n222");
 			ResultVel_ = TmpVel_;
 		}
 	  }
 	  else{
+		printf("\n333");
 		ResultVel_ = TargetVel_;
 	  }
   }
@@ -220,7 +233,10 @@ void* ScaleTruckController::objectdetectInThread() {
 	  if ((distance_ <= FVstopDist_) || (TargetVel_ <= 0.1f)){
 		// Emergency Brake
 		ResultVel_ = 0.0f;
+		printf("\n444");
+		//ResultVel_ = TargetVel_; //added
 	  } else {
+		printf("\n555");
 		ResultVel_ = TargetVel_;
 	  }
   }
@@ -235,7 +251,9 @@ void ScaleTruckController::displayConsole() {
   printf("\nAngle           : %2.3f degree", AngleDegree_);
   printf("\nRefer Vel       : %3.3f m/s", RefVel_);
   printf("\nSend Vel        : %3.3f m/s", ResultVel_);
+  //printf("\nSend Vel        : %3.3f m/s", TargetVel_);//changed
   printf("\nTar/Cur Vel     : %3.3f / %3.3f m/s", TargetVel_, CurVel_);
+  //printf("\nTar/Cur Vel     : %3.3f / %3.3f m/s", TestVel_, CurVel_);
   printf("\nTar/Cur Dist    : %3.3f / %3.3f m", TargetDist_, distance_);
   printf("\nK1/K2           : %3.3f / %3.3f", laneDetector_.K1_, laneDetector_.K2_);
   if(ObjCircles_ > 0) {
@@ -288,6 +306,7 @@ void ScaleTruckController::spin() {
     TargetDist = TargetDist_;
     if(distance_ <= LVstopDist_ || TargetVel_ >= 2.0) {
       TargetVel = 0;
+      //TargetVel = 2;
     }
     else {
       TargetVel = RefVel_;   
@@ -300,14 +319,15 @@ void ScaleTruckController::spin() {
     iss = std::istringstream(ZMQ_SOCKET_.recv_req_);
     iss >> zipcode >> recv_sub;
     iss = std::istringstream(ZMQ_SOCKET_.recv_dsh_);
-    iss >> zipcode >> TargetVel_ >> TargetDist_;
-
+    iss >> zipcode >> TargetVel_ >> TargetDist_; //changed
+    
     if(enableConsoleOutput_)
       displayConsole();
 
     msg.steer_angle = AngleDegree_;
     msg.cur_dist = distance_;
     msg.tar_vel = ResultVel_;	//Xavier to LRC and LRC to OpenCR
+    //msg.tar_vel = 0.7;
     msg.tar_dist = TargetDist_;
     msg.beta = Beta_;
     msg.gamma = Gamma_;

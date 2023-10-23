@@ -35,7 +35,6 @@
 //custom msgs
 #include <scale_truck_control/lrc2xav.h>
 #include <scale_truck_control/xav2lrc.h>
-
 namespace scale_truck_control {
 
 class ScaleTruckController {
@@ -76,6 +75,7 @@ class ScaleTruckController {
     float SafetyVel_;
     float ResultVel_;
     float FVmaxVel_;
+    float TestVel_;
 
     //object
     int ObjSegments_;

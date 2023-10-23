@@ -17,6 +17,7 @@
 #include <scale_truck_control/ocr2lrc.h>
 #include <scale_truck_control/lrc2xav.h>
 #include <scale_truck_control/lrc2ocr.h>
+#include <carla_msgs/CarlaEgoVehicleStatus.h>
 
 using namespace std;
 
@@ -32,7 +33,8 @@ class LocalRC{
 	private:
 		ros::NodeHandle nodeHandle_;
 		ros::Subscriber XavSubscriber_;	
-		ros::Subscriber OcrSubscriber_;	
+		ros::Subscriber OcrSubscriber_;
+		ros::Subscriber SpeedSubscriber_;	
 		ros::Publisher XavPublisher_;
 		ros::Publisher OcrPublisher_;
 
@@ -47,6 +49,7 @@ class LocalRC{
 		bool isNodeRunning();
 		void XavCallback(const scale_truck_control::xav2lrc &msg);
 		void OcrCallback(const scale_truck_control::ocr2lrc &msg);
+		void speedCallback(const carla_msgs::CarlaEgoVehicleStatus &msg);
 		void LrcPub();
 		void UDPsendFunc();
 		void* UDPrecvInThread();

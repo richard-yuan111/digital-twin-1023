@@ -28,7 +28,7 @@
 
   <!-- Start rplidar_ros -->
   <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
-    <param name="serial_port"         type="string" value="/dev/ttyACM0"/>  
+    <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>  
     <param name="serial_baudrate"     type="int"    value="256000"/><!--A3 -->
     <param name="frame_id"            type="string" value="laser"/>
     <param name="inverted"            type="bool"   value="false"/>
@@ -64,7 +64,7 @@
   
   <node name="obstacle_tracker" pkg="obstacle_detector" type="obstacle_tracker_node">
     <remap from="scan" to="scan_filtered"/>
-    <param name="active"			value="true"/>
+    <param name="active"			value="rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0 _baud:=57600true"/>
     <param name="copy_segments"			value="true"/>
     <param name="loop_rate"			value="30.0"/>
     <param name="tracking_duration"		value="1.0"/>

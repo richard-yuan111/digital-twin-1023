@@ -34,6 +34,8 @@ void LocalRC::init(){
 	int XavPubQueueSize;
 	std::string OcrPubTopicName;
 	int OcrPubQueueSize;
+	std::string speedTopicName;
+	int speedQueueSize;
 
 	nodeHandle_.param("params/truck_info", Index_, 0);
 
@@ -53,6 +55,8 @@ void LocalRC::init(){
 	nodeHandle_.param("LrcSubPub/xavier_to_lrc/queue_size", XavSubQueueSize, 1);
 	nodeHandle_.param("LrcSubPub/ocr_to_lrc/topic", OcrSubTopicName, std::string("/ocr2lrc_msg"));
 	nodeHandle_.param("LrcSubPub/ocr_to_lrc/queue_size", OcrSubQueueSize, 1);
+	nodeHandle_.param("subscribers/vehicle_status/topic", speedTopicName, std::string("/carla/ego_vehicle/vehicle_status"));
+	nodeHandle_.param("subscribers/vehicle_status/topic", speedQueueSize, 1);
 
 	/******************************/
 	/* ROS Topic Publish Option */
@@ -66,7 +70,8 @@ void LocalRC::init(){
 	/* ROS Topic Subscriber */ 
 	/************************/
 	XavSubscriber_ = nodeHandle_.subscribe(XavSubTopicName, XavSubQueueSize, &LocalRC::XavCallback, this);
-	OcrSubscriber_ = nodeHandle_.subscribe(OcrSubTopicName, OcrSubQueueSize, &LocalRC::OcrCallback, this);
+	//OcrSubscriber_ = nodeHandle_.subscribe(OcrSubTopicName, OcrSubQueueSize, &LocalRC::OcrCallback, this);
+	SpeedSubscriber_ = nodeHandle_.subscribe(speedTopicName, speedQueueSize, &LocalRC::speedCallback, this);
 
 	/************************/
 	/* ROS Topic Publisher */ 
@@ -104,14 +109,25 @@ void LocalRC::XavCallback(const scale_truck_control::xav2lrc &msg){
 	CurDist_ = msg.cur_dist;
 	TarDist_ = msg.tar_dist;
 	TarVel_ = msg.tar_vel;
+	//TarVel_ = 1.8;
 	Beta_ = msg.beta;
 	Gamma_ = msg.gamma;
 }
+
 
 void LocalRC::OcrCallback(const scale_truck_control::ocr2lrc &msg){
 	const std::lock_guard<std::mutex> lock(mutexOcrCallback_);
 	CurVel_ = msg.cur_vel;
 	SatVel_ = msg.u_k;	//saturated velocity
+}
+
+void LocalRC::speedCallback(const carla_msgs::CarlaEgoVehicleStatus &msg){
+//	const std::lock_guard<std::mutex> lock(mutexOcrCallback_);
+//	CurVel_ = msg.cur_vel;
+//	SatVel_ = msg.u_k;	//saturated velocity
+	const std::lock_guard<std::mutex> lock(mutexOcrCallback_);
+	CurVel_ = msg.velocity;
+	SatVel_ = 0;
 }
 
 void LocalRC::LrcPub(){
@@ -261,8 +277,8 @@ void LocalRC::spin(){
 		VelocitySensorCheck();
 		ModeCheck(CrcMode_);
 		LrcPub();
-		UDPsendFunc();
-		RecordData(&startTime);
+		//UDPsendFunc();
+		//RecordData(&startTime);
 		PrintData();
 
 		if(!isNodeRunning()){
