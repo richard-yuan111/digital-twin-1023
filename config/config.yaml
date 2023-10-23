@@ -1,6 +1,6 @@
 subscribers:
   camera_reading:
-    topic: /usb_cam/image_raw
+    topic: /carla/ego_vehicle/rgb_front/image
     queue_size: 1
   obstacle_reading:
     topic: /tracked_obstacles
@@ -36,6 +36,6 @@ udp_ip:
   ip_addr: "udp://239.255.255.250"
 
 image_view:
-  enable_opencv: false
+  enable_opencv: true
   wait_key_delay: 1
   enable_console_output: true

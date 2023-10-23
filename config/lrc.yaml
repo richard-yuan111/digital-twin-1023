@@ -11,9 +11,6 @@ LrcSubPub:
   lrc_to_ocr:
     topic: /lrc2ocr_msg
     queue_size: 1
-  speed:
-    topic: /carla/ego_vehicle/vehicle_status
-    queue_size: 1
 
 LrcParams:
   udp_group_addr: 239.255.255.250
